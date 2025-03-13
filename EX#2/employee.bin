@@ -1,0 +1,2 @@
+employee_t emp_read[3];
+emp_readfile(emp_read, 3);
