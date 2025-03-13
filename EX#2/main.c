@@ -1,66 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
-    char name[50];
+    int id;
+    char name[20];
     int age;
-    float salary;
+    double salary;
 } employee_t;
 
-// 顯示員工資訊
+// 員工資訊輸出函式
 void emp_info(employee_t emp) {
-    printf("姓名: %s, 年齡: %d, 薪水: %.2f\n", emp.name, emp.age, emp.salary);
+    printf("employee id = %d\n", emp.id);
+    printf("employee name = %s\n", emp.name);
+    printf("employee age = %d\n", emp.age);
+    printf("employee salary = %.6lf\n\n", emp.salary);
 }
 
-// 計算平均年齡
-int emp_aveage_age(employee_t emp[], int n) {
-    int total_age = 0;
-    for (int i = 0; i < n; i++) {
-        total_age += emp[i].age;
-    }
-    return (n > 0) ? total_age / n : 0;
-}
-
-// 寫入員工資料到 binary 檔案
+// 將員工資訊寫入二進位檔案
 void emp_writefile(employee_t emp[], int n) {
-    FILE *file = fopen("employee.bin", "wb");
-    if (file == NULL) {
-        printf("無法開啟檔案!\n");
+    FILE* fp = fopen("employee.bin", "wb+");
+    if (fp == NULL) {
+        perror("檔案開啟失敗");
         return;
     }
-    fwrite(emp, sizeof(employee_t), n, file);
-    fclose(file);
+    for (int i = 0; i < n; i++) {
+        fwrite(&emp[i], sizeof(employee_t), 1, fp);
+    }
+    fclose(fp);
 }
 
-// 讀取員工資料並輸出到螢幕
-void emp_readfile(employee_t emp[], int n) {
-    FILE *file = fopen("employee.bin", "rb");
-    if (file == NULL) {
-        printf("無法開啟檔案!\n");
+// 讀取員工資訊的二進位檔案
+void emp_readfile(employee_t emp[]) {
+    FILE* fp = fopen("employee.bin", "rb");
+    if (fp == NULL) {
+        perror("檔案開啟失敗");
         return;
     }
-    fread(emp, sizeof(employee_t), n, file);
-    fclose(file);
-
-    for (int i = 0; i < n; i++) {
-        emp_info(emp[i]); // 顯示每位員工資訊
+    int i = 0;
+    employee_t tmp;
+    while (fread(&tmp, sizeof(employee_t), 1, fp)) {
+        emp[i] = tmp; // 將讀取的數據存入陣列
+        i++;
     }
+    fclose(fp);
 }
 
 int main() {
-    int n = 3; // 設定員工數量
-    employee_t employees[3] = {
-        {"Alice", 30, 50000.0},
-        {"Bob", 25, 45000.0},
-        {"Charlie", 35, 55000.0}
-    };
+    employee_t emp[3];
 
-    // 寫入資料
-    emp_writefile(employees, n);
+    // 初始化員工數據
+    emp[0].id = 1;
+    emp[0].age = 20;
+    emp[0].salary = 30000.0;
+    strcpy(emp[0].name, "IU");
 
-    // 讀取並輸出資料
-    employee_t emp_read[3];
-    emp_readfile(emp_read, n);
+    emp[1].id = 2;
+    emp[1].age = 26;
+    emp[1].salary = 36000.0;
+    strcpy(emp[1].name, "taylor");
+
+    emp[2].id = 3;
+    emp[2].age = 31;
+    emp[2].salary = 90000.0;
+    strcpy(emp[2].name, "swift");
+
+    // 寫入檔案
+    emp_writefile(emp, 3);
+
+    // 讀取檔案
+    employee_t read_emp[10];
+    emp_readfile(read_emp);
+
+    // 輸出讀取結果
+    for (int i = 0; i < 3; i++) {
+        emp_info(read_emp[i]);
+    }
 
     return 0;
 }
